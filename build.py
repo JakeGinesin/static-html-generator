@@ -68,9 +68,11 @@ def interpret(out, md):
             italics = re.findall(r"[^\*]\*[^\*]+\*[^\*]|^\*[^\*]+\*[^\*]|[^\*]\*[^\*]+\*$|^\*[^\*]+\*$", line)
             for match in italics:
                 text = match[match.index("*")+1:match[match.index("*")+1:].index("*")+1+match.index("*")]
+                print(text)
                 tblock = '<span class="italic">'+text+'</span>'
                 if match[0] == " " : tblock = " " + tblock
                 if match[-1] == " " : tblock+= " "
+                match = match[match.index("*"):match[match.index("*")+1:].index("*")+2+match.index("*")]
                 line = line.replace(match, str(tblock), 1)
 
             # replacing bolds
@@ -80,6 +82,7 @@ def interpret(out, md):
                 tblock = '<span style="font-weight:600;">'+text+'</span>'
                 if match[0] == " " : tblock = " " + tblock
                 if match[-1] == " " : tblock+= " "
+                match = match[match.index("**"):match[match.index("**")+1:].index("**")+2+match.index("**")]
                 line = line.replace(str(match), str(tblock), 1)
 
 
@@ -90,14 +93,13 @@ def interpret(out, md):
                 block = '<code class="highlighter-rouge" data-lang="text">'+text+'</code>'
                 if match[0] == " " : block = " " + block
                 if match[-1] == " " : block+= " "
-
+                match = match[match.index("`"):match[match.index("`")+1:].index("`")+2+match.index("`")]
                 line = line.replace(match, block, 1)
 
             out.write(line + "<br> \n")
 
-        # replace links
+# clear old dirs
 try: 
-    # clear old dirs
     dirs = ["public/pages/braindump","public/pages/custom/active","public/pages/custom/inactive"]
     for dirv in dirs:
         for f in os.listdir(os.path.join(dirv)):
@@ -105,8 +107,8 @@ try:
 except:
     print("no dirs needed clearing")
 
+# clear old files
 try:
-    # clear old files
     to_del = ["public/pages/archive.html","public/pages/index.html","public/pages/braindump.html"]
     for item in to_del:
         try : os.remove(item)
