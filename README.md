@@ -1,2 +1,68 @@
 # static-html-generator
-Jake's static HTML generator
+Link to original blog post [here](http://localhost:3000/blog/custom-static-site-generator)
+
+## Blog Post Content:
+I restructured the backend of [my website](https://jakegines.in/) to feature a *self-built* [static HTML generator](https://www.cloudflare.com/learning/performance/static-site-generator/) and markdown parser, in addition to many other small changes. I did this not just to increase performance, but to ensure my website is [designed to last](https://web.archive.org/web/20220625161623/https://jeffhuang.com/designed_to_last/) and sufficiently [rugged](https://ruggedsoftware.org/). I eliminated many moving parts from my website stack—on top of now serving static content, I dropped MongoDB, many npm libraries, and all external APIs from my stack. In this post I'm going to briefly explain how I did it.
+
+### Static HTML generator
+A static HTML generator is a tool that generates HTML pages from raw data. Prebuilt tools exist to do this—*Next.js*, *Hugo*, *Gatsby*, and *Jekyll* are some examples. I've tried these tools out, and they're not for me. Too much bloat and not enough low-level control. So, I built my own. 
+
+My initial file setup is something like this:
+```
+.
+|-- raw
+     |-- item1.html
+     |-- item2.md
+|-- templates
+     |-- item_template.html
+```
+
+I want my static HTML generator to generate this:
+```
+.
+|-- serve
+     |-- item1.html
+     |-- item2.html
+```
+
+Everything's in one python file - `build.py` - which is invoked through a script in my `package.json` file as shown below:
+```
+"main": "main.js",
+"scripts": {
+  "start": "python3 build.py && node main.js"
+},
+```
+
+The basic design for the template files are the following:
+```html=
+<html>
+{{Content}}
+</html>
+```
+
+### Build Script
+The code behind `build.py` is actually quite simple. Pseudocode below:
+```python=
+open template, item, out:
+	if item is html : move file to serve
+	elif item is md:
+		for line in template:
+			if "{{Content}}" in line : out.write(interpret(item))
+			else : out.write(line)
+```
+
+### Interpreter
+The interpreter is pretty simple as well—all I'm doing is looping through each line and using regular expressions to filter and replace markdown patterns with HTML. I also track specific multi-line features. Pseudocode below:
+```python=
+def interpret(markdown):
+	lines, out = all lines in markdown, ""
+	
+	for line in lines:
+		if re.findall(case 1, line) is not None:
+			out += formatted html
+		elif re.findall(case 2, line) is not None:
+			out += formatted html
+	
+	return out
+```
+
