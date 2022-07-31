@@ -68,7 +68,6 @@ def interpret(out, md):
             italics = re.findall(r"[^\*]\*[^\*]+\*[^\*]|^\*[^\*]+\*[^\*]|[^\*]\*[^\*]+\*$|^\*[^\*]+\*$", line)
             for match in italics:
                 text = match[match.index("*")+1:match[match.index("*")+1:].index("*")+1+match.index("*")]
-                print(text)
                 tblock = '<span class="italic">'+text+'</span>'
                 if match[0] == " " : tblock = " " + tblock
                 if match[-1] == " " : tblock+= " "
