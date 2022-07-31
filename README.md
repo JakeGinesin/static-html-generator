@@ -1,2 +1,2 @@
 # static-html-generator
-jake's static html generator
+Jake's static HTML generator
