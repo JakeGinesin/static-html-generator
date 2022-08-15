@@ -23,7 +23,7 @@ def interpret(out, md):
                 fullfc+=1
                 fullf+="<span>" + str(line) + "</span>"
 
-        elif re.search("^```[a-zA-Z]+\=$", line) is not None or p: 
+        elif re.search("^```[a-zA-Z]+\=$", line) is not None or p:
             if p == False:
                 fullp, fullpc = "", 0
                 p = True
@@ -50,7 +50,7 @@ def interpret(out, md):
                 text = match[match.index("``")+2:match[match.index("``")+1:].index("``")+1]
                 tblock = '<figure class="highlight" style="margin-top:10px; margin-bottom:10px; padding-top:10px; padding-bottom:10px;"><pre><code class="language-text" data-lang="text">'+text+'</code></pre></figure>'
                 line = line.replace(match, tblock, 1)
-                out.write(line) 
+                out.write(line)
         else: ## typical line replacements (nonexclusive)
             ## replacing lines that begin in "-" with "•"
             if re.search("^-", line) is not None:
@@ -81,7 +81,7 @@ def interpret(out, md):
                 tblock = '<span style="font-weight:600;">'+text+'</span>'
                 if match[0] == " " : tblock = " " + tblock
                 if match[-1] == " " : tblock+= " "
-                match = match[match.index("**"):match[match.index("**")+1:].index("**")+2+match.index("**")]
+                match = match[match.index("**"):match[match.index("**")+1:].index("**")+3+match.index("**")]
                 line = line.replace(str(match), str(tblock), 1)
 
 
@@ -98,7 +98,7 @@ def interpret(out, md):
             out.write(line + "<br> \n")
 
 # clear old dirs
-try: 
+try:
     dirs = ["public/pages/braindump","public/pages/custom/active","public/pages/custom/inactive"]
     for dirv in dirs:
         for f in os.listdir(os.path.join(dirv)):
@@ -145,12 +145,12 @@ for file in os.listdir(os.path.join("build/braindump")):
 with open("template_html/braindump_template.html") as temp:
     out = open("public/pages/braindump.html", "a")
     for line in temp:
-        lt = line 
+        lt = line
         if "{{data}}" in lt:
             r = ""
             ll = os.listdir("public/pages/braindump")
             ll.sort()
-            for file in ll: 
+            for file in ll:
                 name = file[:file.index(".")]
                 r+= '<a class="ll" href="/braindump/'+name+'">'+name+'</a>'
                 r+= '<span> </span>'
@@ -264,7 +264,7 @@ with open("template_html/index_template.html", "r") as temp:
             for item in items[0:3]:
                 l = list(item[1].items())
                 t, dte, url, active = l[0][1], l[1][1], l[2][1], l[3][1]
-                i = '<li><a href="blog/'+url+'">'+t+'</a><span class="date">'+dte.replace("/","-")+'</span></li>' 
+                i = '<li><a href="blog/'+url+'">'+t+'</a><span class="date">'+dte.replace("/","-")+'</span></li>'
                 build+=i
             build+='<li><a href="/blog">More →</a></li>'
             out.write(build)
@@ -281,7 +281,7 @@ with open("template_html/archive_template.html", "r") as temp:
             for item in items:
                 l = list(item[1].items())
                 t, dte, url, active = l[0][1], l[1][1], l[2][1], l[3][1]
-                i = '<li><a href="blog/'+url+'">'+t+'</a><span class="date">'+dte.replace("/","-")+'</span></li>' 
+                i = '<li><a href="blog/'+url+'">'+t+'</a><span class="date">'+dte.replace("/","-")+'</span></li>'
                 build+=i
             out.write(build)
         else : out.write(lt)
