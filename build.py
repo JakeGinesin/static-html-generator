@@ -18,9 +18,13 @@ def interpret(out, md):
                 f = False
                 out.write('</pre></td><td class="code"><pre>')
                 fullf+="</pre></td></tr></tbody></table></code></pre></figure>"
+                # fullf = fullf.replace("<", "&#60;")
+                # fullf = fullf.replace(">", "&#62;")
+                
                 out.write(fullf)
             else:
                 fullfc+=1
+                line = line.replace("<", "&#60;").replace(">", "&#62;")
                 fullf+="<span style='padding-right:10px;'>" + str(line) + "</span>"
 
         elif re.search("^```[a-zA-Z]+\=$", line) is not None or p:
@@ -32,10 +36,13 @@ def interpret(out, md):
                 p = False
                 out.write('</pre></td><td class="code"><pre>')
                 fullp+="</pre></td></tr></tbody></table></code></pre></figure>"
+                # fullp = fullp.replace("<", "&#60;")
+                # fullp = fullp.replace(">", "&#62;")
                 out.write(fullp)
             else:
                 fullpc+=1
                 out.write(str(fullpc) + "\n")
+                line = line.replace("<", "&#60;").replace(">", "&#62;")
                 fullp+="<span style='padding-right:10px;'>" + str(line) + "</span>"
 
         elif re.search("^#", line) is not None:
@@ -71,6 +78,14 @@ def interpret(out, md):
                 else:
                     link = '<a href='+l+'>'+text+'</a>'
                 line = line.replace(str(match), str(link), 1)
+
+            ## replacing images with img tags
+            images = re.findall(r"\[\[[^\[\]\(\)]+\]\]\([^\[\]\(\)]+\)", line)
+            for match in images:
+                text = match[match.index("[[")+2:match.index("]]")]
+                l = match[match.index("(")+1:match.index(")")]
+                image = '<img src="'+l+'" alt="'+text+'" class="img">'
+                line = line.replace(str(match), str(image), 1)
 
             # replacing italics
             italics = re.findall(r"[^\*]\*[^\*]+\*[^\*]|^\*[^\*]+\*[^\*]|[^\*]\*[^\*]+\*$|^\*[^\*]+\*$", line)
@@ -196,15 +211,18 @@ for f in os.listdir("build/braindump"):
                 out.write(lt.replace("{{title}}", f[:f.index(".")]))
             else : out.write(lt)
 
-# go through buid/blog and add to index 
+# go through build/blog and add to index 
 with open("templates/index.html") as temp:
     index_content = ""
-    for d in os.listdir("build/blog"):
+
+    items = os.listdir("build/blog")
+    items.sort(reverse=True)
+    for d in items:
         # open config file
         with open("build/blog/"+d+"/config.yaml") as config:
             config = yaml.load(config, Loader=yaml.FullLoader)
             # add to index file
-            index_content += '<td style="text-align:center;"> <a class="ico" style="color:'+config["color"]+';" href="/blog/'+config["name"]+'">'+config["icon"]+'</a><br>'+config["name"]+'</td> \n'
+            index_content += '<td style="text-align:center;"> <a class="ico" style="color:'+config["color"]+';" href="/blog/'+config["name"]+'">'+config["icon"]+'</a><div style="color:'+config["color"]+';">'+config["name"]+'</div></td> \n'
 
     filedata = temp.read()
     filedata = filedata.replace("{{content}}", index_content)
@@ -226,6 +244,7 @@ for d in os.listdir("build/blog"):
         for f in os.listdir("build/blog/"+d):
             if f != "config.yaml":
                 posts.append(f)
+
         for line in temp:
             lt = line
             if "{{color}}" in lt:
@@ -255,10 +274,11 @@ for d in os.listdir("build/blog"):
                         post = posts.pop()
                         v = post[:post.index(".")]
                         vr = v[0:3]
-                        appr += '<td><a style="text-decoration: none !important; color:'+config["config"]+'" href="/blog/'+d+'/'+v+'" title="'+v+'">'+vr+'</a></td> \n'
+                        appr += '<td><a style="text-decoration: none !important; color:'+config["color"]+'" href="/blog/'+d+'/'+v+'" title="'+v+'">'+vr+'</a></td> \n'
                         data2max -= 1
-                    except:
+                    except Exception as e:
                         data2max -= 1
+
                 if (data2max == 0):
                     appr += '<td><a style="text-decoration: none !important"></a></td> \n'
 
@@ -270,7 +290,7 @@ for d in os.listdir("build/blog"):
                         post = posts.pop()
                         v = post[:post.index(".")]
                         vr = v[0:3]
-                        appr += '<td><a style="text-decoration: none !important; color:'+config["config"]+' " href="/blog/'+d+'/'+v+'" title="'+v+'">'+vr+'</a></td> \n'
+                        appr += '<td><a style="text-decoration: none !important; color:'+config["color"]+' " href="/blog/'+d+'/'+v+'" title="'+v+'">'+vr+'</a></td> \n'
                         data3max -= 1
                     except:
                         data3max -= 1
@@ -285,7 +305,7 @@ for d in os.listdir("build/blog"):
                         post = posts.pop()
                         v = post[:post.index(".")]
                         vr = v[0:3]
-                        appr += '<td><a style="text-decoration: none !important" href="/blog/'+d+'/'+v+'">'+vr+'</a></td> \n'
+                        appr += '<td><a style="text-decoration: none !important; color:'+config["color"]+' " href="/blog/'+d+'/'+v+'" title="'+v+'">'+vr+'</a></td> \n'
                         data4max -= 1
                     except:
                         data4max -= 1
@@ -299,7 +319,8 @@ for d in os.listdir("build/blog"):
 for d in os.listdir("build/blog"):
     for f in os.listdir("build/blog/"+d):
         if f != "config.yaml":
-            with open("templates/blogpost.html") as temp, open("build/blog/"+d+"/"+f) as blog:
+            with open("templates/blogpost.html") as temp, open("build/blog/"+d+"/"+f) as blog, open("build/blog/"+d+"/config.yaml") as config:
+                config = yaml.load(config, Loader=yaml.FullLoader)
                 out = open("public/pages/blog/"+d+"/"+f[:f.index(".")] + ".html", "a")
                 data1, data2, data3, data4 = True, True, True, True
                 data1max, data2max, data3max, data4max = 3, 4, 4, 4
@@ -320,7 +341,10 @@ for d in os.listdir("build/blog"):
                         if "{{name}}" in lt:
                             lt = lt.replace("{{name}}", config["name"])
                         if "{{title}}" in lt:
-                            lt = lt.replace("{{title}}", f[:f.index(".")])
+                            # get path from blog
+                            qq = blog.name.split("/")[blog.name.split("/").index("blog")+2:][0]
+                            qq = qq[:qq.index(".")]
+                            lt = lt.replace("{{title}}", qq)
                         if "{{data1}}" in lt and data1:
                             appr = ""
                             while data1max > 0:
@@ -342,7 +366,7 @@ for d in os.listdir("build/blog"):
                                     post = posts.pop()
                                     v = post[:post.index(".")]
                                     vr = v[0:3]
-                                    appr += '<td><a style="text-decoration: none !important; color:'+config["config"]+'" href="/blog/'+d+'/'+v+'" title="'+v+'">'+vr+'</a></td> \n'
+                                    appr += '<td><a style="text-decoration: none !important; color:'+config["color"]+'" href="/blog/'+d+'/'+v+'" title="'+v+'">'+vr+'</a></td> \n'
                                     data2max -= 1
                                 except:
                                     data2max -= 1
@@ -357,7 +381,7 @@ for d in os.listdir("build/blog"):
                                     post = posts.pop()
                                     v = post[:post.index(".")]
                                     vr = v[0:3]
-                                    appr += '<td><a style="text-decoration: none !important; color:'+config["config"]+' " href="/blog/'+d+'/'+v+'" title="'+v+'">'+vr+'</a></td> \n'
+                                    appr += '<td><a style="text-decoration: none !important; color:'+config["color"]+'" href="/blog/'+d+'/'+v+'" title="'+v+'">'+vr+'</a></td> \n'
                                     data3max -= 1
                                 except:
                                     data3max -= 1
@@ -372,7 +396,7 @@ for d in os.listdir("build/blog"):
                                     post = posts.pop()
                                     v = post[:post.index(".")]
                                     vr = v[0:3]
-                                    appr += '<td><a style="text-decoration: none !important" href="/blog/'+d+'/'+v+'">'+vr+'</a></td> \n'
+                                    appr += '<td><a style="text-decoration: none !important; color:'+config["color"]+'" href="/blog/'+d+'/'+v+'" title="'+v+'">'+vr+'</a></td> \n'
                                     data4max -= 1
                                 except:
                                     data4max -= 1
